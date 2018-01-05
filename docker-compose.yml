@@ -5,3 +5,6 @@ services:
       dockerfile: ./Dockerfile-ubuntu
       context: .
     image: cifv3:ubuntu
+    ports:
+      - "443:443"
+      - "5000:5000"
