@@ -1,0 +1,35 @@
+FROM ubuntu:17.10
+
+LABEL maintainer Alexander Merck <breakfastdub@gmail.com>
+LABEL name "cifv3"
+LABEL version "0.1"
+LABEL release "1"
+LABEL summary "CIFv3 container"
+LABEL description "The fastest way to consume threat intelligence."
+LABEL authoritative-source-url "https://github.com/CommunityHoneyNetwork/communityhoneynetwork"
+LABEL changelog-url "https://github.com/CommunityHoneyNetwork/communityhoneynetwork/commits/master"
+
+# Set DOCKER var - used by
+
+ENV DOCKER "yes"
+ENV CIF_VERSION 3.0.0b0
+ENV CIF_RUNTIME_PATH /var/lib/cif
+ENV SUDO_USER root
+ENV playbook "cifv3.yml"
+
+VOLUME /usr/local/share/GeoIP
+VOLUME /etc/cif
+VOLUME /var/log/cif
+VOLUME /var/lib/cif
+
+RUN apt-get update \
+      && apt-get install -y ansible
+
+RUN echo "localhost ansible_connection=local" >> /etc/ansible/hosts
+ADD . /opt/
+RUN ansible-playbook /opt/${playbook}
+
+EXPOSE 443 5000
+
+ENTRYPOINT ["/cif-entrypoint.sh"]
+CMD ["/bin/bash", "/start.sh"]

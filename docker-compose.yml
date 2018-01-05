@@ -1,0 +1,7 @@
+version: '2'
+services:
+  cifv3:
+    build:
+      dockerfile: ./Dockerfile-ubuntu
+      context: .
+    image: cifv3:ubuntu

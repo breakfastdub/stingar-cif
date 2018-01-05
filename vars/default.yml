@@ -1,0 +1,16 @@
+---
+  pkgs:
+    - python-pip
+    - git
+    - sqlite
+    - wget
+    - geoip-bin
+    - geoipupdate
+    - python-pytest
+    - python-lxml
+
+  pip_executable: pip2
+
+  cif_repo: https://github.com/csirtgadgets/bearded-avenger
+
+  cif_version: 3.0.0a16

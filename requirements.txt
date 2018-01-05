@@ -1,0 +1,6 @@
+setuptools>=11.3
+ansible>=2.1
+versioneer
+markupsafe
+supervisor==3.2.1
+rdflib

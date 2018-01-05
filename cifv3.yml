@@ -1,0 +1,127 @@
+---
+  - hosts: all
+
+    tasks:
+      - name: CIFv3 | Gather | print os info
+        debug:
+          msg: "{{ ansible_distribution }}-{{ ansible_distribution_major_version}}"
+
+      - name: CIFv3 | Gather | os info
+        include_vars: "{{ item }}"
+        with_first_found:
+          - "{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
+          - "{{ ansible_distribution }}.yml"
+        tags: vars
+
+      - name: CIFv3 | Gather | default info
+        include_vars:
+          file: default.yml
+        tags: vars
+
+      - name: CIFv3 | install non-specific packages
+        package:
+          name: "{{ item }}"
+        with_items: "{{ pkgs }}"
+
+      - name: CIFv3 | install os-specific packages
+        package:
+          name: "{{ item }}"
+        with_items: "{{ pkgs_osspec }}"
+
+      - name: CIFv3 | update pip
+        pip:
+          name: pip
+          version: 9.0.1
+
+      - name: CIFv3 | install python requirements
+        pip:
+          requirements: /opt/requirements.txt
+
+      - name: CIFv3 | create cif group
+        group:
+          name: cif
+          state: present
+
+      - name: CIFv3 | create cif user
+        user:
+          name: cif
+          shell: /bin/bash
+          group: cif
+          append: yes
+
+      - name: CIFv3 | copy cif geoip config
+        copy:
+          dest: "/etc"
+          src: GeoIP.conf
+          mode: 0644
+
+      - name: CIFv3 | update geoip data
+        command: "geoipupdate -v"
+
+      - name: CIFv3 | create log directory
+        file:
+          path: /var/log/cif
+          owner: cif
+          group: cif
+          state: directory
+
+      - name: CIFv3 | create lib directory
+        file:
+          path: /var/lib/cif
+          owner: cif
+          group: cif
+          state: directory
+
+      - name: CIFv3 | create etc directory
+        file:
+          path: /etc/cif
+          owner: cif
+          group: cif
+          state: directory
+
+      - name: CIFv3 | get cifv3 source
+        unarchive:
+          src: "https://github.com/csirtgadgets/bearded-avenger/archive/{{cif_version}}.tar.gz"
+          dest: /
+          remote_src: yes
+
+      - name: CIFv3 | copy rules
+        copy:
+          src: "/bearded-avenger-{{cif_version}}/rules/"
+          dest: "/etc/cif/"
+
+      - name: CIFv3 | install cif python requirements
+        pip:
+          requirements: "/bearded-avenger-{{cif_version}}/dev_requirements.txt"
+
+      #- name: CIFv3 | run py.text
+      #  command: "py.test"
+
+      - name: CIFv3 | run python setup
+        command: "python setup.py install"
+        args:
+          chdir: /bearded-avenger-{{cif_version}}/
+       # environment:
+       #   ENABLE_INSTALL: True
+
+      - name: CIFv3 | copy cif.env
+        copy:
+          src: cif.env
+          dest: /etc
+
+      - name: CIFv3 | copy cif.conf
+        copy:
+          src: cif.conf
+          dest: /
+
+      - name: CIFv3 | copy start.sh
+        copy:
+          src: start.sh
+          dest: /
+          mode: 0755
+
+      - name: CIFv3 | copy cif-entrypoint.sh
+        copy:
+          src: cif-entrypoint.sh
+          dest: /
+          mode: 0755
